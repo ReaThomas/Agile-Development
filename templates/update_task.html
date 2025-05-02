@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Update Task{% endblock %}
+
+{% block sidebar %}
+<div class="col-md-3 col-lg-2 sidebar">
+    <div class="list-group">
+        <a href="{{ url_for('dashboard') }}" class="list-group-item">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+        </a>
+        <a href="{{ url_for('team_details', team_id=task.team_id) }}" class="list-group-item">
+            <i class="fas fa-users me-2"></i>Team Details
+        </a>
+        <a href="{{ url_for('update_task', task_id=task.id) }}" class="list-group-item active">
+            <i class="fas fa-edit me-2"></i>Update Task
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-edit me-2"></i>Update Task
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% if user.role == 'manager' %}
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Task Title</label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ task.title }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Task Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4">{{ task.description }}</textarea>
+                        </div>
+                        {% else %}
+                        <h5 class="mb-3">{{ task.title }}</h5>
+                        <p class="mb-4">{{ task.description }}</p>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="status" class="form-label">Task Status</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="To Start" {% if task.status == 'To Start' %}selected{% endif %}>To Start</option>
+                                    <option value="In Progress" {% if task.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                                    <option value="Completed" {% if task.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="time_spent" class="form-label">Additional Time Spent (hours)</label>
+                                <input type="number" class="form-control" id="time_spent" name="time_spent" min="0" step="0.5" value="0">
+                                <div class="form-text">Current total: {{ task.time_spent }} hours</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Update Task
+                            </button>
+                            <a href="{{ url_for('team_details', team_id=task.team_id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Team
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="card-footer text-muted">
+                    <div class="d-flex justify-content-between">
+                        <small>Created: {{ task.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        <small>Last Updated: {{ task.updated_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

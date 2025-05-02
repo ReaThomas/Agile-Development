@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Manager Dashboard - Agile Project Management System{% endblock %}
+
+{% block sidebar %}
+<div class="col-md-3 col-lg-2 sidebar">
+    <div class="list-group">
+        <a href="{{ url_for('dashboard') }}" class="list-group-item list-group-item-action active">
+            <i class="fas fa-chart-line me-2"></i>Dashboard
+        </a>
+        <a href="{{ url_for('create_team') }}" class="list-group-item list-group-item-action">
+            <i class="fas fa-users-cog me-2"></i>Create Team
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tachometer-alt me-2"></i>Manager Dashboard</h2>
+    <a href="{{ url_for('create_team') }}" class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>Create New Team
+    </a>
+</div>
+
+<div class="dashboard-stats">
+    <div class="stat-card" style="background-color: var(--primary);">
+        <h3>{{ teams|length }}</h3>
+        <p class="mb-0">Teams</p>
+    </div>
+    
+    {% set total_tasks = namespace(count=0) %}
+    {% set completed_tasks = namespace(count=0) %}
+    {% for team in teams %}
+        {% for task in team.tasks %}
+            {% set total_tasks.count = total_tasks.count + 1 %}
+            {% if task.status == 'Completed' %}
+                {% set completed_tasks.count = completed_tasks.count + 1 %}
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+    
+    <div class="stat-card" style="background-color: var(--secondary);">
+        <h3>{{ total_tasks.count }}</h3>
+        <p class="mb-0">Total Tasks</p>
+    </div>
+    
+    <div class="stat-card" style="background-color: var(--warning);">
+        <h3>{{ completed_tasks.count }}</h3>
+        <p class="mb-0">Completed Tasks</p>
+    </div>
+    
+    <div class="stat-card" style="background-color: var(--danger);">
+        <h3>{{ '%.1f'|format(completed_tasks.count / total_tasks.count * 100) if total_tasks.count > 0 else 0 }}%</h3>
+        <p class="mb-0">Overall Progress</p>
+    </div>
+</div>
+
+{% if teams %}
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-users me-2"></i>Teams</h4>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for team in teams %}
+                            {% set team_tasks = namespace(total=0, completed=0) %}
+                            {% for task in team.tasks %}
+                                {% set team_tasks.total = team_tasks.total + 1 %}
+                                {% if task.status == 'Completed' %}
+                                    {% set team_tasks.completed = team_tasks.completed + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            <a href="{{ url_for('team_details', team_id=team.id) }}" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ team.name }}</h5>
+                                    <small>{{ team.members|length }}/4 members</small>
+                                </div>
+                                <p class="mb-1">Tasks: {{ team_tasks.completed }}/{{ team_tasks.total }}</p>
+                                <div class="progress team-progress">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {{ (team_tasks.completed / team_tasks.total * 100) if team_tasks.total > 0 else 0 }}%" 
+                                         aria-valuenow="{{ team_tasks.completed }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="{{ team_tasks.total }}"></div>
+                                </div>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Progress Overview</h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="tasksChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-users fa-4x mb-3 text-muted"></i>
+            <h3>No Teams Created Yet</h3>
+            <p>Start by creating your first team to manage projects effectively.</p>
+            <a href="{{ url_for('create_team') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-1"></i>Create Team
+            </a>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if teams %}
+            // Set up the tasks chart
+            const ctx = document.getElementById('tasksChart').getContext('2d');
+            
+            {% set to_start = namespace(count=0) %}
+            {% set in_progress = namespace(count=0) %}
+            {% set completed = namespace(count=0) %}
+            
+            {% for team in teams %}
+                {% for task in team.tasks %}
+                    {% if task.status == 'To Start' %}
+                        {% set to_start.count = to_start.count + 1 %}
+                    {% elif task.status == 'In Progress' %}
+                        {% set in_progress.count = in_progress.count + 1 %}
+                    {% elif task.status == 'Completed' %}
+                        {% set completed.count = completed.count + 1 %}
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+            
+            const tasksChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['To Start', 'In Progress', 'Completed'],
+                    datasets: [{
+                        data: [{{ to_start.count }}, {{ in_progress.count }}, {{ completed.count }}],
+                        backgroundColor: ['#3498db', '#f39c12', '#2ecc71'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        {% endif %}
+    });
+</script>
+{% endblock %}

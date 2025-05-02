@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Add Team Member - {{ team.name }}{% endblock %}
+
+{% block sidebar %}
+<div class="col-md-3 col-lg-2 sidebar">
+    <div class="list-group">
+        <a href="{{ url_for('dashboard') }}" class="list-group-item">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+        </a>
+        <a href="{{ url_for('team_details', team_id=team.id) }}" class="list-group-item">
+            <i class="fas fa-users me-2"></i>Team Details
+        </a>
+        <a href="{{ url_for('add_member', team_id=team.id) }}" class="list-group-item active">
+            <i class="fas fa-user-plus me-2"></i>Add Member
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-user-plus me-2"></i>Add Member to {{ team.name }}
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label for="register_no" class="form-label">Student Register Number</label>
+                            <input type="text" class="form-control" id="register_no" name="register_no" required>
+                            <div class="form-text">Enter the register number of the student you want to add.</div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>Notes:
+                            <ul>
+                                <li>Only students who have registered in the system can be added.</li>
+                                <li>Each team can have a maximum of 4 members.</li>
+                                <li>A student can only be part of one team at a time.</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-user-plus me-2"></i>Add Student
+                            </button>
+                            <a href="{{ url_for('team_details', team_id=team.id) }}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Team
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Team Details - {{ team.name }}{% endblock %}
+
+{% block sidebar %}
+<div class="col-md-3 col-lg-2 sidebar">
+    <div class="list-group">
+        <a href="{{ url_for('dashboard') }}" class="list-group-item">
+            <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+        </a>
+        <a href="{{ url_for('team_details', team_id=team.id) }}" class="list-group-item active">
+            <i class="fas fa-users me-2"></i>Team Details
+        </a>
+        {% if user.role == 'manager' %}
+        <a href="{{ url_for('create_task', team_id=team.id) }}" class="list-group-item">
+            <i class="fas fa-plus-circle me-2"></i>Create Task
+        </a>
+        <a href="{{ url_for('add_member', team_id=team.id) }}" class="list-group-item">
+            <i class="fas fa-user-plus me-2"></i>Add Member
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-users me-2"></i>{{ team.name }}</h1>
+        {% if user.role == 'manager' %}
+        <div>
+            <a href="{{ url_for('create_task', team_id=team.id) }}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-1"></i>New Task
+            </a>
+            <a href="{{ url_for('add_member', team_id=team.id) }}" class="btn btn-success ms-2">
+                <i class="fas fa-user-plus me-1"></i>Add Member
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Task Statistics -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-chart-pie me-2"></i>Task Overview
+        </div>
+        <div class="card-body">
+            <div class="dashboard-stats">
+                <div class="stat-card bg-primary">
+                    <h2>{{ stats.total }}</h2>
+                    <p>Total Tasks</p>
+                </div>
+                <div class="stat-card bg-success">
+                    <h2>{{ stats.completed }}</h2>
+                    <p>Completed</p>
+                </div>
+                <div class="stat-card bg-warning">
+                    <h2>{{ stats.in_progress }}</h2>
+                    <p>In Progress</p>
+                </div>
+                <div class="stat-card" style="background-color: var(--primary);">
+                    <h2>{{ stats.to_start }}</h2>
+                    <p>To Start</p>
+                </div>
+            </div>
+            
+            <div class="progress team-progress">
+                <div class="progress-bar bg-success" role="progressbar" style="width: {{ stats.completion_rate }}%;" 
+                    aria-valuenow="{{ stats.completion_rate }}" aria-valuemin="0" aria-valuemax="100">
+                    {{ stats.completion_rate|round(1) }}%
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Team Members -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-users me-2"></i>Team Members</span>
+                </div>
+                <div class="card-body">
+                    {% if members %}
+                    <div class="list-group">
+                        {% for member in members %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-user me-2"></i>{{ member.username }}
+                                {% if member.register_no %}
+                                <small class="text-muted d-block">Register No: {{ member.register_no }}</small>
+                                {% endif %}
+                            </div>
+                            {% if user.role == 'manager' %}
+                            <a href="{{ url_for('remove_member', team_id=team.id, user_id=member.id) }}" 
+                               class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to remove this member?')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No members in this team yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-tasks me-2"></i>Tasks
+                </div>
+                <div class="card-body">
+                    {% if tasks %}
+                    <div class="row">
+                        {% for task in tasks %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card task-card {% if task.status == 'To Start' %}to-start{% elif task.status == 'In Progress' %}in-progress{% else %}completed{% endif %}">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ task.title }}</h5>
+                                    <p class="card-text">{{ task.description|truncate(100) }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span class="badge {% if task.status == 'To Start' %}bg-primary{% elif task.status == 'In Progress' %}bg-warning{% else %}bg-success{% endif %}">
+                                            {{ task.status }}
+                                        </span>
+                                        <span class="text-muted small">
+                                            <i class="fas fa-clock me-1"></i>{{ task.time_spent }} hrs
+                                        </span>
+                                    </div>
+                                    <div class="mt-3">
+                                        <a href="{{ url_for('update_task', task_id=task.id) }}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-edit me-1"></i>Update
+                                        </a>
+                                        {% if user.role == 'manager' %}
+                                        <a href="{{ url_for('delete_task', task_id=task.id) }}" class="btn btn-sm btn-danger ms-1" 
+                                           onclick="return confirm('Are you sure you want to delete this task?')">
+                                            <i class="fas fa-trash me-1"></i>Delete
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No tasks assigned to this team yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add any JavaScript needed for the team details page here
+    });
+</script>
+{% endblock %}

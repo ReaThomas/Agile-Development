@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Welcome to Agile Project Management System{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h1 class="display-4 mb-4">Agile Project Management System</h1>
+                    <p class="lead">A comprehensive platform for managing projects using Agile and Scrum frameworks</p>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="row text-start mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="fas fa-bolt text-warning me-2"></i>Agile Methodology</h5>
+                                    <p class="card-text">Our system implements Agile principles to enable iterative development, adaptive planning, and continuous improvement.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="fas fa-users text-primary me-2"></i>Scrum Framework</h5>
+                                    <p class="card-text">Utilize Scrum practices with sprints, daily stand-ups, and retrospectives to maximize team productivity.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row text-start mb-4">
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="fas fa-tasks text-success me-2"></i>Task Management</h5>
+                                    <p class="card-text">Effortlessly track tasks through their lifecycle: To Start, In Progress, and Completed.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title"><i class="fas fa-chart-line text-danger me-2"></i>Team Analytics</h5>
+                                    <p class="card-text">Get insights into team performance with real-time progress tracking and reporting.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg me-2">
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
+                        </a>
+                        <a href="{{ url_for('register') }}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Register
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

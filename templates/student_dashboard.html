@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - Agile Project Management System{% endblock %}
+
+{% block sidebar %}
+{% if team %}
+<div class="col-md-3 col-lg-2 sidebar">
+    <div class="list-group">
+        <a href="{{ url_for('dashboard') }}" class="list-group-item list-group-item-action active">
+            <i class="fas fa-chart-line me-2"></i>Dashboard
+        </a>
+        <a href="{{ url_for('team_details', team_id=team.id) }}" class="list-group-item list-group-item-action">
+            <i class="fas fa-users me-2"></i>Team Details
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-tachometer-alt me-2"></i>Student Dashboard</h2>
+    {% if team %}
+    <a href="{{ url_for('team_details', team_id=team.id) }}" class="btn btn-primary">
+        <i class="fas fa-users me-2"></i>View Team
+    </a>
+    {% endif %}
+</div>
+
+{% if team %}
+    {% set to_start = namespace(count=0) %}
+    {% set in_progress = namespace(count=0) %}
+    {% set completed = namespace(count=0) %}
+    
+    {% for task in tasks %}
+        {% if task.status == 'To Start' %}
+            {% set to_start.count = to_start.count + 1 %}
+        {% elif task.status == 'In Progress' %}
+            {% set in_progress.count = in_progress.count + 1 %}
+        {% elif task.status == 'Completed' %}
+            {% set completed.count = completed.count + 1 %}
+        {% endif %}
+    {% endfor %}
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0"><i class="fas fa-info-circle me-2"></i>Team Information</h4>
+        </div>
+        <div class="card-body">
+            <h3 class="mb-3">{{ team.name }}</h3>
+            
+            <div class="dashboard-stats">
+                <div class="stat-card" style="background-color: var(--primary);">
+                    <h3>{{ tasks|length }}</h3>
+                    <p class="mb-0">Total Tasks</p>
+                </div>
+                <div class="stat-card" style="background-color: var(--warning);">
+                    <h3>{{ in_progress.count }}</h3>
+                    <p class="mb-0">In Progress</p>
+                </div>
+                <div class="stat-card" style="background-color: var(--secondary);">
+                    <h3>{{ completed.count }}</h3>
+                    <p class="mb-0">Completed</p>
+                </div>
+                <div class="stat-card" style="background-color: var(--danger);">
+                    <h3>{{ '%.1f'|format(completed.count / tasks|length * 100) if tasks|length > 0 else 0 }}%</h3>
+                    <p class="mb-0">Progress</p>
+                </div>
+            </div>
+            
+            <div class="progress">
+                <div class="progress-bar bg-success" role="progressbar" 
+                     style="width: {{ (completed.count / tasks|length * 100) if tasks|length > 0 else 0 }}%" 
+                     aria-valuenow="{{ completed.count }}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="{{ tasks|length }}">
+                    {{ '%.1f'|format(completed.count / tasks|length * 100) if tasks|length > 0 else 0 }}%
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-tasks me-2"></i>My Tasks</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="nav nav-tabs mb-3" id="taskTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button">All Tasks ({{ tasks|length }})</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="to-start-tab" data-bs-toggle="tab" data-bs-target="#to-start" type="button">To Start ({{ to_start.count }})</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="in-progress-tab" data-bs-toggle="tab" data-bs-target="#in-progress" type="button">In Progress ({{ in_progress.count }})</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button">Completed ({{ completed.count }})</button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="taskTabsContent">
+                        <div class="tab-pane fade show active" id="all" role="tabpanel">
+                            {% if tasks %}
+                                {% for task in tasks %}
+                                    <div class="card task-card mb-3 {{ task.status.lower().replace(' ', '-') }}">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h5 class="card-title">{{ task.title }}</h5>
+                                                <span class="badge {% if task.status == 'Completed' %}bg-success{% elif task.status == 'In Progress' %}bg-warning{% else %}bg-primary{% endif %}">
+                                                    {{ task.status }}
+                                                </span>
+                                            </div>
+                                            <p class="card-text">{{ task.description }}</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">Time spent: {{ task.time_spent }} hours</small>
+                                                <a href="{{ url_for('update_task', task_id=task.id) }}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-edit me-1"></i>Update
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-clipboard-list fa-3x mb-3 text-muted"></i>
+                                    <p>No tasks assigned to your team yet.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="tab-pane fade" id="to-start" role="tabpanel">
+                            {% set has_to_start = false %}
+                            {% for task in tasks %}
+                                {% if task.status == 'To Start' %}
+                                    {% set has_to_start = true %}
+                                    <div class="card task-card mb-3 to-start">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h5 class="card-title">{{ task.title }}</h5>
+                                                <span class="badge bg-primary">{{ task.status }}</span>
+                                            </div>
+                                            <p class="card-text">{{ task.description }}</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">Time spent: {{ task.time_spent }} hours</small>
+                                                <a href="{{ url_for('update_task', task_id=task.id) }}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-edit me-1"></i>Update
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if not has_to_start %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-clipboard-check fa-3x mb-3 text-muted"></i>
+                                    <p>No tasks in "To Start" status.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="tab-pane fade" id="in-progress" role="tabpanel">
+                            {% set has_in_progress = false %}
+                            {% for task in tasks %}
+                                {% if task.status == 'In Progress' %}
+                                    {% set has_in_progress = true %}
+                                    <div class="card task-card mb-3 in-progress">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h5 class="card-title">{{ task.title }}</h5>
+                                                <span class="badge bg-warning">{{ task.status }}</span>
+                                            </div>
+                                            <p class="card-text">{{ task.description }}</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">Time spent: {{ task.time_spent }} hours</small>
+                                                <a href="{{ url_for('update_task', task_id=task.id) }}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-edit me-1"></i>Update
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if not has_in_progress %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-spinner fa-3x mb-3 text-muted"></i>
+                                    <p>No tasks in "In Progress" status.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="tab-pane fade" id="completed" role="tabpanel">
+                            {% set has_completed = false %}
+                            {% for task in tasks %}
+                                {% if task.status == 'Completed' %}
+                                    {% set has_completed = true %}
+                                    <div class="card task-card mb-3 completed">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h5 class="card-title">{{ task.title }}</h5>
+                                                <span class="badge bg-success">{{ task.status }}</span>
+                                            </div>
+                                            <p class="card-text">{{ task.description }}</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">Time spent: {{ task.time_spent }} hours</small>
+                                                <a href="{{ url_for('update_task', task_id=task.id) }}" class="btn btn-sm btn-primary">
+                                                    <i class="fas fa-edit me-1"></i>Update
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if not has_completed %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-check-circle fa-3x mb-3 text-muted"></i>
+                                    <p>No completed tasks yet.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Task Distribution</h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="tasksChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-users fa-4x mb-3 text-muted"></i>
+            <h3>You're not assigned to any team yet</h3>
+            <p>Please wait for a manager to add you to a team.</p>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if team and tasks|length > 0 %}
+            // Set up the tasks chart
+            const ctx = document.getElementById('tasksChart').getContext('2d');
+            const tasksChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['To Start', 'In Progress', 'Completed'],
+                    datasets: [{
+                        data: [{{ to_start_count }}, {{ in_progress_count }}, {{ completed_count }}],
+                        backgroundColor: ['#3498db', '#f39c12', '#2ecc71'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        {% endif %}
+    });
+</script>
+{% endblock %}

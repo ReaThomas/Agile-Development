@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Agile Project Management System{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="mb-0"><i class="fas fa-user-plus me-2"></i>Register</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('register') }}">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role</label>
+                        <select class="form-select" id="role" name="role" required onchange="toggleRegisterNo()">
+                            <option value="student">Student</option>
+                            <option value="manager">Manager</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3" id="register_no_div">
+                        <label for="register_no" class="form-label">Register Number</label>
+                        <input type="text" class="form-control" id="register_no" name="register_no">
+                        <div class="form-text">Required for students only</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">Confirm Password</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">Register</button>
+                </form>
+            </div>
+            <div class="card-footer text-center">
+                <p class="mb-0">Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function toggleRegisterNo() {
+        const role = document.getElementById('role').value;
+        const registerNoDiv = document.getElementById('register_no_div');
+        const registerNoInput = document.getElementById('register_no');
+        
+        if (role === 'student') {
+            registerNoDiv.style.display = 'block';
+            registerNoInput.required = true;
+        } else {
+            registerNoDiv.style.display = 'none';
+            registerNoInput.required = false;
+        }
+    }
+    
+    // Form validation for password match
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+        }
+    });
+    
+    // Initialize the form
+    document.addEventListener('DOMContentLoaded', function() {
+        toggleRegisterNo();
+    });
+</script>
+{% endblock %}
